@@ -8,6 +8,8 @@ namespace CRM.Data
 {
     public class ApplicationDbContext : IdentityDbContext
     {
+        public virtual DbSet<Customer> Customers { get; set; }
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {

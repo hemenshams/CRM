@@ -1,0 +1,65 @@
+﻿@page "/customerlist"
+
+@attribute [Authorize]
+@inject CustomerService customerService
+
+<h3>لیست مشتریان</h3>
+<br/>
+@if (customerService == null)
+{
+    <p><em>درحال فراخوانی اطلاعات...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>انتخاب</th>
+                <th>شناسه</th>
+                <th>نام و نام خانوادگی</th>
+                <th>تلفن همراه</th>
+                <th>پست الکترونیک</th>
+                <th>فعال</th>
+                <th>تاریخ ایجاد</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in customers)
+            {
+            <tr>
+                <td><input type="checkbox" checked bind="@customer.IsSelected" /></td>
+                <td>@customer.Id</td>
+                <td>@customer.FullName</td>
+                <td>@customer.CellPhone</td>
+                <td>@customer.Email</td>
+                <td><input type="checkbox" disabled="disabled" checked bind="@customer.IsEnable" /></td>
+                <td>@customer.CreatedTime.ToString("yyyy-MM-dd")</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+    <br/>
+    <input type="submit" id="btnSend" class="btn btn-success" value="ارسال پیام" @onclick="SendMessage" />
+    <br/>
+    <p>
+        تعداد انتخاب : @selectedCustomersCount
+    </p>
+}
+
+@code {
+    private int[] selectedCustomers;
+    private int selectedCustomersCount;
+
+    private CustomerViewModel[] customers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        customers = await customerService.GetCustomersAsync();
+    }
+
+    private void SendMessage()
+    {
+        selectedCustomers = customers.Where(x => x.IsSelected).Select(x => x.Id).ToArray();
+        selectedCustomersCount = selectedCustomers.Count();
+    }
+}
