@@ -2,15 +2,23 @@
 
 @attribute [Authorize]
 @inject CustomerService customerService
+@inherits OwningComponentBase<CustomerService>
 
 <h3>لیست مشتریان</h3>
-<br/>
+<br />
 @if (customerService == null)
 {
     <p><em>درحال فراخوانی اطلاعات...</em></p>
 }
 else
 {
+    <p>
+        <!-- Add a new forecast -->
+        <a class="btn btn-primary" @onclick="CreateCustomerModal">
+            <i class="fa"></i>
+            ایجاد مشتری جدید
+        </a>
+    </p>
     <table class="table">
         <thead>
             <tr>
@@ -21,40 +29,117 @@ else
                 <th>پست الکترونیک</th>
                 <th>فعال</th>
                 <th>تاریخ ایجاد</th>
+                <th>عملیات</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var customer in customers)
+            @foreach (var customerRecord in customers)
             {
-            <tr>
-                <td><input type="checkbox" checked bind="@customer.IsSelected" /></td>
-                <td>@customer.Id</td>
-                <td>@customer.FullName</td>
-                <td>@customer.CellPhone</td>
-                <td>@customer.Email</td>
-                <td><input type="checkbox" disabled="disabled" checked bind="@customer.IsEnable" /></td>
-                <td>@customer.CreatedTime.ToString("yyyy-MM-dd")</td>
-            </tr>
+                <tr>
+                    <td><input type="checkbox" @bind-value="customerRecord.IsSelected" /></td>
+                    <td>@customerRecord.Id</td>
+                    <td>@customerRecord.FullName</td>
+                    <td>@customerRecord.CellPhone</td>
+                    <td>@customerRecord.Email</td>
+                    <td><input type="checkbox" disabled="disabled" @bind="customerRecord.IsEnable" /></td>
+                    <td>@customerRecord.CreatedTime.ToString("yyyy-MM-dd")</td>
+                    <td><button class="btn btn-primary" @onclick="(() => EditCustomerModal(customerRecord))">ویرایش</button></td>
+                </tr>
             }
         </tbody>
     </table>
-    <br/>
+    <br />
     <input type="submit" id="btnSend" class="btn btn-success" value="ارسال پیام" @onclick="SendMessage" />
-    <br/>
+    <br />
     <p>
         تعداد انتخاب : @selectedCustomersCount
     </p>
+
+    @if (ShowCustomerPopup)
+    {
+        <div class="modal" tabindex="-1" style="display:block" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">
+                        @(isEdit == true ? "ویرایش اطلاعات" : "ایجاد")
+                         مشتری</h3>
+                        <button type="button" class="close" @onclick="CloseCustomerModal">
+                            <span aria-hidden="true">X</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input class="form-control" type="text" placeholder="نام و نام خانوادگی"
+                               @bind="customer.FullName" />
+                        <input class="form-control" type="number" placeholder="شماره تلفن همراه"
+                               @bind="customer.CellPhone" />
+                        <input class="form-control" type="email" placeholder="پست الکترونیک"
+                               @bind="customer.Email" />
+                        <br />
+                        <button class="btn btn-primary" @onclick="CreateCustomer">ذخیره</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
+    private bool ShowCustomerPopup = false;
+    private bool isEdit = false;
     private int[] selectedCustomers;
     private int selectedCustomersCount;
 
-    private CustomerViewModel[] customers;
+    private List<CustomerViewModel> customers = new List<CustomerViewModel>();
+    private CustomerViewModel customer = new CustomerViewModel();
 
     protected override async Task OnInitializedAsync()
     {
         customers = await customerService.GetCustomersAsync();
+    }
+
+    private void CreateCustomerModal()
+    {
+        customer = new CustomerViewModel();
+        customer.Id = 0;
+
+        ShowCustomerPopup = true;
+    }
+
+    private void CloseCustomerModal()
+    {
+        ShowCustomerPopup = false;
+    }
+
+    private async Task CreateCustomer()
+    {
+        isEdit = false;
+        ShowCustomerPopup = false;
+
+        if (customer.Id == 0)
+        {
+            var newCustomer = new CustomerViewModel()
+            {
+                CellPhone = customer.CellPhone,
+                Email = customer.Email,
+                FullName = customer.FullName
+            };
+
+            var result = customerService.CreateCustomerAsync(newCustomer);
+        }
+        else
+        {
+            var result = customerService.UpdateCustomerAsync(customer);
+        }
+
+        customers = await customerService.GetCustomersAsync();
+    }
+
+    void EditCustomerModal(CustomerViewModel customerRecord)
+    {
+        isEdit = true;
+        customer = customerRecord;
+        ShowCustomerPopup = true;
     }
 
     private void SendMessage()

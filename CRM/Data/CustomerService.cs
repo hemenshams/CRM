@@ -3,26 +3,87 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CRM.Data.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Data
 {
     public class CustomerService
     {
-        private CustomerViewModel Summaries = new CustomerViewModel
+        private readonly ApplicationDbContext _context;
+        public CustomerService(ApplicationDbContext context)
         {
-            CellPhone = "+989123644125",
-            Email = "",
-            FullName = "هیمن شمس الدین",
-            IsEnable = true,
-            CreatedTime = DateTime.Now,
-            IsSelected = false
-        };
+            _context = context;
+        }
 
-
-
-        public Task<CustomerViewModel[]> GetCustomersAsync()
+        public async Task<List<CustomerViewModel>> GetCustomersAsync(int PageCount, int PageSize)
         {
-            return Task.FromResult(new[] { Summaries });
+            #region Get All Customers
+
+            return await _context.Customers
+                .AsQueryable()
+                .Skip(PageCount - 1 * PageSize)
+                .Take(PageSize)
+                .Select(x => new CustomerViewModel
+                {
+                    Id = x.Id,
+                    CellPhone = x.CellPhone,
+                    Email = x.Email,
+                    FullName = x.FullName,
+                    IsEnable = x.IsEnable,
+                    CreatedUserId = x.CreatedUserId,
+                    CreatedTime = x.CreatedTime,
+                    IsSelected = false
+                })
+                .ToListAsync();
+
+            #endregion
+        }
+
+        public async Task<CustomerViewModel> CreateCustomerAsync(CustomerViewModel customerViewModel)
+        {
+            #region Create Customer
+
+            var customer = new Customer()
+            {
+                CellPhone = customerViewModel.CellPhone,
+                CreatedTime = DateTime.Now,
+                Email = customerViewModel.Email,
+                FullName = customerViewModel.FullName,
+                IsEnable = true,
+                //CreatedUserId = 
+            };
+
+            _context.Customers.Add(customer);
+            _context.SaveChanges();
+            return await Task.FromResult(customerViewModel);
+
+            #endregion
+        }
+
+        public async Task<bool> UpdateCustomerAsync(CustomerViewModel customerViewModel)
+        {
+            #region Update Customer
+
+            var existingCustomer = _context.Customers
+                .Where(x => x.Id == customerViewModel.Id)
+                .FirstOrDefault();
+
+            if (existingCustomer != null)
+            {
+                existingCustomer.FullName = customerViewModel.FullName;
+                existingCustomer.Email = customerViewModel.Email;
+                existingCustomer.CellPhone = customerViewModel.CellPhone;
+                existingCustomer.IsEnable = customerViewModel.IsEnable;
+                _context.SaveChanges();
+            }
+            else
+            {
+                return await Task.FromResult(false);
+            }
+
+            return await Task.FromResult(true);
+
+            #endregion
         }
     }
 }
