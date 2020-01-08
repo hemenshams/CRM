@@ -10,18 +10,24 @@ namespace CRM.Data
     public class CustomerService
     {
         private readonly ApplicationDbContext _context;
+
         public CustomerService(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task<List<CustomerViewModel>> GetCustomersAsync(int PageCount, int PageSize)
+        public async Task<List<CustomerViewModel>> GetCustomersAsync(int PageIndex, int PageSize)
         {
             #region Get All Customers
 
-            return await _context.Customers
+            if (PageIndex < 1)
+            {
+                return null;
+            }
+
+            var customers = _context.Customers
                 .AsQueryable()
-                .Skip(PageCount - 1 * PageSize)
+                .Skip((PageIndex - 1) * PageSize)
                 .Take(PageSize)
                 .Select(x => new CustomerViewModel
                 {
@@ -33,8 +39,9 @@ namespace CRM.Data
                     CreatedUserId = x.CreatedUserId,
                     CreatedTime = x.CreatedTime,
                     IsSelected = false
-                })
-                .ToListAsync();
+                });
+
+            return await customers.ToListAsync();
 
             #endregion
         }

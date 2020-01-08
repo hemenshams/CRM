@@ -15,7 +15,7 @@ else
     <p>
         <!-- Add a new forecast -->
         <a class="btn btn-primary" @onclick="CreateCustomerModal">
-            <i class="fa"></i>
+            <i class="oi oi-plus"></i>
             ایجاد مشتری جدید
         </a>
     </p>
@@ -43,7 +43,7 @@ else
                     <td>@customerRecord.Email</td>
                     <td><input type="checkbox" disabled="disabled" @bind="customerRecord.IsEnable" /></td>
                     <td>@customerRecord.CreatedTime.ToString("yyyy-MM-dd")</td>
-                    <td><button class="btn btn-primary" @onclick="(() => EditCustomerModal(customerRecord))">ویرایش</button></td>
+                    <td><a class="oi oi-pencil" @onclick="(() => EditCustomerModal(customerRecord))" title="ویرایش"></a></td>
                 </tr>
             }
         </tbody>
@@ -95,7 +95,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        customers = await customerService.GetCustomersAsync();
+        customers = await customerService.GetCustomersAsync(1, 10);
     }
 
     private void CreateCustomerModal()
@@ -132,7 +132,7 @@ else
             var result = customerService.UpdateCustomerAsync(customer);
         }
 
-        customers = await customerService.GetCustomersAsync();
+        customers = await customerService.GetCustomersAsync(1, 10);
     }
 
     void EditCustomerModal(CustomerViewModel customerRecord)

@@ -4,9 +4,9 @@
         <a href="Identity/Account/Login">ورود</a>
     </NotAuthorized>
     <Authorized>
-        <form method="post" action="Identity/Account/LogOut">
+        <form method="post" action="Identity/Account/LogOut" style="float: left;">
             <button type="submit" class="nav-link btn btn-link">خروج</button>
         </form>
-        <a href="Identity/Account/Manage">@context.User.Identity.Name</a>
+        <a href="Identity/Account/Manage" style="float: left;">@context.User.Identity.Name</a>
     </Authorized>
 </AuthorizeView>
