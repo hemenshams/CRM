@@ -1,11 +1,13 @@
 ﻿@page "/customerlist"
 
 @attribute [Authorize]
-@inject CustomerService customerService
 @inherits OwningComponentBase<CustomerService>
+@inject CustomerService customerService
+@inject IJSRuntime jsRuntime
 
 <h3>لیست مشتریان</h3>
 <br />
+
 @if (customerService == null)
 {
     <p><em>درحال فراخوانی اطلاعات...</em></p>
@@ -13,7 +15,6 @@
 else
 {
     <p>
-        <!-- Add a new forecast -->
         <a class="btn btn-primary" @onclick="CreateCustomerModal">
             <i class="oi oi-plus"></i>
             ایجاد مشتری جدید
@@ -43,29 +44,33 @@ else
                     <td>@customerRecord.Email</td>
                     <td><input type="checkbox" disabled="disabled" @bind="customerRecord.IsEnable" /></td>
                     <td>@customerRecord.CreatedTime.ToString("yyyy-MM-dd")</td>
-                    <td><a class="oi oi-pencil" @onclick="(() => EditCustomerModal(customerRecord))" title="ویرایش"></a></td>
+                    <td>
+                        <a class="oi oi-pencil" @onclick="(() => EditCustomerModal(customerRecord))" title="ویرایش"></a>
+                        <a class="oi oi-delete" @onclick="(() => DeleteCustomer(customerRecord))" title="حذف"></a>
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
-    <br />
-    <input type="submit" id="btnSend" class="btn btn-success" value="ارسال پیام" @onclick="SendMessage" />
-    <br />
-    <p>
-        تعداد انتخاب : @selectedCustomersCount
-    </p>
+    @*<br />
+        <input type="submit" id="btnSend" class="btn btn-success" value="ارسال پیام" @onclick="SendMessage" />
+        <br />
+        <p>
+            تعداد انتخاب : @selectedCustomersCount
+        </p>*@
 
-    @if (ShowCustomerPopup)
+    @if (showCustomerPopup)
     {
         <div class="modal" tabindex="-1" style="display:block" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 class="modal-title">
-                        @(isEdit == true ? "ویرایش اطلاعات" : "ایجاد")
-                         مشتری</h3>
+                            @(isEdit == true ? "ویرایش اطلاعات" : "ایجاد")
+                            مشتری
+                        </h3>
                         <button type="button" class="close" @onclick="CloseCustomerModal">
-                            <span aria-hidden="true">X</span>
+                            <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
@@ -85,7 +90,10 @@ else
 }
 
 @code {
-    private bool ShowCustomerPopup = false;
+
+    #region Properties
+
+    private bool showCustomerPopup = false;
     private bool isEdit = false;
     private int[] selectedCustomers;
     private int selectedCustomersCount;
@@ -98,23 +106,27 @@ else
         customers = await customerService.GetCustomersAsync(1, 10);
     }
 
+    #endregion
+
+    #region Actions
+
     private void CreateCustomerModal()
     {
         customer = new CustomerViewModel();
         customer.Id = 0;
 
-        ShowCustomerPopup = true;
+        showCustomerPopup = true;
     }
 
     private void CloseCustomerModal()
     {
-        ShowCustomerPopup = false;
+        showCustomerPopup = false;
     }
 
     private async Task CreateCustomer()
     {
         isEdit = false;
-        ShowCustomerPopup = false;
+        showCustomerPopup = false;
 
         if (customer.Id == 0)
         {
@@ -139,12 +151,27 @@ else
     {
         isEdit = true;
         customer = customerRecord;
-        ShowCustomerPopup = true;
+        showCustomerPopup = true;
     }
 
-    private void SendMessage()
+    protected async Task DeleteCustomer(CustomerViewModel customerRecord)
     {
-        selectedCustomers = customers.Where(x => x.IsSelected).Select(x => x.Id).ToArray();
-        selectedCustomersCount = selectedCustomers.Count();
+        var messageString = $"آیا از حذف مشتری «{customerRecord.FullName}» مطمئن هستید؟";
+        bool confirmed = await jsRuntime.InvokeAsync<bool>("confirm", messageString);
+
+        if (confirmed)
+        {
+            await customerService.DeleteCustomerAsync(customerRecord.Id);
+            customers = await customerService.GetCustomersAsync(1, 10);
+        }
     }
+
+    //private void SendMessage()
+    //{
+    //    selectedCustomers = customers.Where(x => x.IsSelected).Select(x => x.Id).ToArray();
+    //    selectedCustomersCount = selectedCustomers.Count();
+    //}
+
+    #endregion
+
 }

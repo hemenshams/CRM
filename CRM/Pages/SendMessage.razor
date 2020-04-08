@@ -1,0 +1,31 @@
+﻿<h3>ارسال پیام</h3>
+
+@attribute [Authorize]
+@inherits OwningComponentBase<CustomerService>
+@inject CustomerService customerService
+@inject IJSRuntime jsRuntime
+
+
+
+@code {
+
+    //https://mdbootstrap.com/docs/jquery/components/stepper/#docsTabsOverview
+    //https://mdbootstrap.com/docs/jquery/components/stepper/
+
+    #region Properties
+
+    private bool showCustomerPopup = false;
+    private int[] selectedCustomers;
+    private int selectedCustomersCount;
+
+    private List<CustomerViewModel> customers = new List<CustomerViewModel>();
+    private CustomerViewModel customer = new CustomerViewModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        customers = await customerService.GetCustomersAsync(1, 10);
+    }
+
+    #endregion
+
+}

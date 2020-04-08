@@ -27,6 +27,7 @@ namespace CRM.Data
 
             var customers = _context.Customers
                 .AsQueryable()
+                .Where(x=> x.IsEnable == true)
                 .Skip((PageIndex - 1) * PageSize)
                 .Take(PageSize)
                 .Select(x => new CustomerViewModel
@@ -80,7 +81,30 @@ namespace CRM.Data
                 existingCustomer.FullName = customerViewModel.FullName;
                 existingCustomer.Email = customerViewModel.Email;
                 existingCustomer.CellPhone = customerViewModel.CellPhone;
-                existingCustomer.IsEnable = customerViewModel.IsEnable;
+                //existingCustomer.IsEnable = customerViewModel.IsEnable;
+                _context.SaveChanges();
+            }
+            else
+            {
+                return await Task.FromResult(false);
+            }
+
+            return await Task.FromResult(true);
+
+            #endregion
+        }
+
+        public async Task<bool> DeleteCustomerAsync(int customerId)
+        {
+            #region Delete Customer 
+
+            var existingCustomer = _context.Customers
+                .Where(x => x.Id == customerId)
+                .FirstOrDefault();
+
+            if (existingCustomer != null)
+            {
+                existingCustomer.IsEnable = false;
                 _context.SaveChanges();
             }
             else
