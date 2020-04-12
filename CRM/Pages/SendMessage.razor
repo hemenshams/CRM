@@ -1,20 +1,188 @@
-﻿<h3>ارسال پیام</h3>
+﻿@page "/sendmessage"
 
 @attribute [Authorize]
 @inherits OwningComponentBase<CustomerService>
 @inject CustomerService customerService
 @inject IJSRuntime jsRuntime
 
+<h3>ارسال پیام</h3>
 
+<style type="text/css">
+    .step {
+        padding: 20px 0px;
+    }
+
+        .step, .step div, .step span {
+            text-align: center;
+            clear: both;
+        }
+
+            .step span {
+                color: #bbb;
+                width: 100%;
+                text-align: center;
+            }
+
+    .stepCircle {
+        border: 1px solid #666;
+        color: #666;
+        border-radius: 13px;
+        height: 26px;
+        width: 26px;
+        font-size: 1rem;
+        margin: 0px auto;
+    }
+
+    .stepCircleCurrent {
+        color: blue;
+    }
+
+    .stepCircle.stepCircleCurrent {
+        border: 1px solid blue;
+        color: blue;
+    }
+
+    .stepCirclePassed {
+        color: green;
+    }
+    .stepCircle.stepCirclePassed {
+        border: 1px solid green;
+        color: green;
+    }
+
+    .stepSpace {
+        height: 100px;
+        text-align: center;
+        width: 2px;
+        margin: 0px auto;
+    }
+
+        .stepSpace span {
+            height: 100px;
+            width: 2px;
+            border-right: 1px solid #bbb;
+        }
+
+    .body {
+        width: 100% !important;
+        clear: both;
+    }
+
+    .bodyHide {
+        display: none;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="row step">
+            <div class="stepCircle @step1CSSClass">۱</div>
+            <span class="@step1CSSClass">انتخاب گیرندگان پیام</span>
+        </div>
+        <div class="row stepSpace">
+            <span></span>
+        </div>
+        <div class="row step">
+            <div class="stepCircle @step2CSSClass">۲</div>
+            <span class="@step2CSSClass">متن پیام</span>
+        </div>
+        <div class="row stepSpace">
+            <span></span>
+        </div>
+        <div class="row step">
+            <div class="stepCircle @step3CSSClass">۳</div>
+            <span class="@step3CSSClass">ارسال</span>
+        </div>
+    </div>
+
+    <div class="col-md-10">
+        @if (customerService == null)
+        {
+            <p><em>درحال فراخوانی اطلاعات...</em></p>
+        }
+        else
+        {
+            <div class="row body @body1CSSClass">
+                <div class="row body">
+                    <button type="button" @onclick="ConfirmSelectCustomers" value="ادامه" class="btn btn-primary">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                </div>
+                <div class="row body">
+                    <table class="table table-bordered table-responsive">
+                        <thead>
+                            <tr>
+                                <th><strong>انتخاب</strong></th>
+                                <th><strong>شناسه</strong></th>
+                                <th><strong>نام و نام خانوادگی</strong></th>
+                                <th><strong>تلفن همراه</strong></th>
+                                <th><strong>پست الکترونیک</strong></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var customerRecord in customers)
+                            {
+                                <tr>
+                                    <td><input type="checkbox" @bind-value="customerRecord.IsSelected" @onclick="SelectCustomer" /></td>
+                                    <td>@customerRecord.Id</td>
+                                    <td>@customerRecord.FullName</td>
+                                    <td>@customerRecord.CellPhone</td>
+                                    <td>@customerRecord.Email</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="row body">
+                    <span class="align-items-end">تعداد گیرندگان انتخاب شده: @selectedCustomersCount</span>
+                </div>
+            </div>
+
+            <div class="row body @body2CSSClass">
+                <div class="row body">
+                    <button type="button" @onclick="ConfirmCreateMessage" value="ادامه" class="btn btn-primary">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <button type="button" @onclick="CancelCreateMessage" value="بازگشت" class="btn btn-warning">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                </div>
+                <div class="row body">
+                </div>
+            </div>
+
+            <div class="row body @body3CSSClass">
+                <div class="row body">
+                    <button type="button" @onclick="ConfirmSendMessage" value="ارسال پیام" class="btn btn-success">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button type="button" @onclick="CancelSendMessage" value="بازگشت" class="btn btn-warning">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                </div>
+                <div class="row body">
+                </div>
+            </div>
+        }
+    </div>
+</div>
 
 @code {
 
-    //https://mdbootstrap.com/docs/jquery/components/stepper/#docsTabsOverview
     //https://mdbootstrap.com/docs/jquery/components/stepper/
 
     #region Properties
 
-    private bool showCustomerPopup = false;
+    private string step1CSSClass;
+    private string step2CSSClass;
+    private string step3CSSClass;
+    private string body1CSSClass;
+    private string body2CSSClass;
+    private string body3CSSClass;
+
     private int[] selectedCustomers;
     private int selectedCustomersCount;
 
@@ -24,8 +192,105 @@
     protected override async Task OnInitializedAsync()
     {
         customers = await customerService.GetCustomersAsync(1, 10);
+
+        step1CSSClass = "stepCircleCurrent";
+        step2CSSClass = string.Empty;
+        step3CSSClass = string.Empty;
+
+        body1CSSClass = string.Empty;
+        body2CSSClass = "bodyHide";
+        body3CSSClass = "bodyHide";
     }
 
     #endregion
 
+    #region Step 1 - Select Customers
+
+    private async Task SelectCustomer()
+    {
+        selectedCustomers = customers.Where(x => x.IsSelected).Select(x => x.Id).ToArray();
+        selectedCustomersCount = selectedCustomers.Count();
+    }
+
+    private async Task ConfirmSelectCustomers()
+    {
+        #region Confirm Select Customers
+
+        selectedCustomers = customers.Where(x => x.IsSelected).Select(x => x.Id).ToArray();
+        selectedCustomersCount = selectedCustomers.Count();
+
+        step1CSSClass = "stepCirclePassed";
+        step2CSSClass = "stepCircleCurrent";
+        step3CSSClass = string.Empty;
+
+        body1CSSClass = "bodyHide";
+        body2CSSClass = string.Empty;
+        body3CSSClass = "bodyHide";
+
+        #endregion
+    }
+
+    #endregion
+
+    #region Step 2 - Create Message
+
+    private async Task ConfirmCreateMessage()
+    {
+        #region Confirm Create Message
+
+        step1CSSClass = "stepCirclePassed";
+        step2CSSClass = "stepCirclePassed";
+        step3CSSClass = "stepCircleCurrent";
+
+        body1CSSClass = "bodyHide";
+        body2CSSClass = "bodyHide";
+        body3CSSClass = string.Empty;
+
+        #endregion
+    }
+
+    private async Task CancelCreateMessage()
+    {
+        #region Cancel Create Message
+
+        step1CSSClass = "stepCircleCurrent";
+        step2CSSClass = string.Empty;
+        step3CSSClass = string.Empty;
+
+        body1CSSClass = string.Empty;
+        body2CSSClass = "bodyHide";
+        body3CSSClass = "bodyHide";
+
+        #endregion
+    }
+
+    #endregion
+
+    #region Step 3 - Send
+
+    private async Task ConfirmSendMessage()
+    {
+        #region Confirm Send Message
+        
+        //Send Message
+
+        #endregion
+    }
+
+    private async Task CancelSendMessage()
+    {
+        #region Cancel Send Message
+
+        step1CSSClass = "stepCirclePassed";
+        step2CSSClass = "stepCircleCurrent";
+        step3CSSClass = string.Empty;
+
+        body1CSSClass = "bodyHide";
+        body2CSSClass = string.Empty;
+        body3CSSClass = "bodyHide";
+
+        #endregion
+    }
+
+    #endregion
 }

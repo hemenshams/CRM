@@ -1,11 +1,22 @@
-@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+﻿@charset "utf-8";
 
-html, body {
-    font-family: 'Helvetica Neue', Tahoma;
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+@import url('FontAwesome/css/all.css');
+
+@font-face {
+    font-family: IRANSans;
+    font-style: normal;
+    font-weight: normal;
+    src: url('../fonts/IRANSansWeb.eot');
+    src: url('../fonts/IRANSansWeb.eot?#iefix') format('embedded-opentype'), /* IE6-8 */
+    url('../fonts/IRANSansWeb.woff2') format('woff2'), /* FF39+,Chrome36+, Opera24+*/
+    url('../fonts/IRANSansWeb.woff') format('woff'), /* FF3.6+, IE9, Chrome6+, Saf5.1+*/
+    url('../fonts/IRANSansWeb.ttf') format('truetype');
+    font-display: swap;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    font-family: Tahoma;
+html, body {
+    font-family: 'IRANSans',IRANSans;
 }
 
 h1 {
@@ -25,18 +36,28 @@ table {
     font-size: 0.8em;
 }
 
-table th {
-    font-weight: bold;
-}
+    table th {
+        font-weight: bold;
+    }
 
 a, .btn-link {
     color: #0366d6;
 }
 
+.nav-link i {
+    padding-left: 5px;
+}
+
+.btn, .form-control {
+    font-size: 0.9rem !important;
+}
+
 .btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    color: #fff !important;
+}
+
+.btn-danger {
+    color: #fff !important;
 }
 
 app {
@@ -66,10 +87,10 @@ app {
             margin-right: 1.5rem;
         }
 
-.main .top-row a:first-child {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+        .main .top-row a:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
 .sidebar {
     background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
@@ -154,12 +175,12 @@ app {
     z-index: 1000;
 }
 
-#blazor-error-ui .dismiss {
-    cursor: pointer;
-    position: absolute;
-    right: 0.75rem;
-    top: 0.5rem;
-}
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
 
 @media (max-width: 767.98px) {
     .main .top-row:not(.auth) {

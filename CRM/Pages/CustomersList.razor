@@ -16,14 +16,14 @@ else
 {
     <p>
         <a class="btn btn-primary" @onclick="CreateCustomerModal">
-            <i class="oi oi-plus"></i>
+            <i class="fas fa-user-plus"></i>
             ایجاد مشتری جدید
         </a>
     </p>
     <table class="table">
         <thead>
             <tr>
-                <th>انتخاب</th>
+                @*<th>انتخاب</th>*@
                 <th>شناسه</th>
                 <th>نام و نام خانوادگی</th>
                 <th>تلفن همراه</th>
@@ -37,7 +37,7 @@ else
             @foreach (var customerRecord in customers)
             {
                 <tr>
-                    <td><input type="checkbox" @bind-value="customerRecord.IsSelected" /></td>
+                    @*<td><input type="checkbox" @bind-value="customerRecord.IsSelected" /></td>*@
                     <td>@customerRecord.Id</td>
                     <td>@customerRecord.FullName</td>
                     <td>@customerRecord.CellPhone</td>
@@ -45,8 +45,12 @@ else
                     <td><input type="checkbox" disabled="disabled" @bind="customerRecord.IsEnable" /></td>
                     <td>@customerRecord.CreatedTime.ToString("yyyy-MM-dd")</td>
                     <td>
-                        <a class="oi oi-pencil" @onclick="(() => EditCustomerModal(customerRecord))" title="ویرایش"></a>
-                        <a class="oi oi-delete" @onclick="(() => DeleteCustomer(customerRecord))" title="حذف"></a>
+                        <a class="btn btn-primary" @onclick="(() => EditCustomerModal(customerRecord))" title="ویرایش">
+                            <i class="fas fa-user-edit"></i>
+                        </a>
+                        <a class="btn btn-danger" @onclick="(() => DeleteCustomer(customerRecord))" title="حذف">
+                            <i class="fas fa-user-times"></i>
+                        </a>
                     </td>
                 </tr>
             }
