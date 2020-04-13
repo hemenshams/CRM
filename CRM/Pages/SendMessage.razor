@@ -8,6 +8,13 @@
 <h3>ارسال پیام</h3>
 
 <style type="text/css">
+    p {
+        width: 100% !important;
+        text-align: right !important;
+        font-weight: normal !important;
+        font-size: 11pt !important;
+    }
+
     .step {
         padding: 20px 0px;
     }
@@ -34,7 +41,7 @@
     }
 
     .stepCircleCurrent {
-        color: blue;
+        color: blue !important;
     }
 
     .stepCircle.stepCircleCurrent {
@@ -43,8 +50,9 @@
     }
 
     .stepCirclePassed {
-        color: green;
+        color: green !important;
     }
+
     .stepCircle.stepCirclePassed {
         border: 1px solid green;
         color: green;
@@ -74,7 +82,7 @@
 </style>
 
 <div class="row">
-    <div class="col-md-2">
+    <div class="col-md-2" style="border-left: 1px solid #bbb;">
         <div class="row step">
             <div class="stepCircle @step1CSSClass">۱</div>
             <span class="@step1CSSClass">انتخاب گیرندگان پیام</span>
@@ -95,21 +103,27 @@
         </div>
     </div>
 
-    <div class="col-md-10">
-        @if (customerService == null)
+    <div class="col-md-10" style="padding-right:55px;">
+        @if (customers == null)
         {
             <p><em>درحال فراخوانی اطلاعات...</em></p>
+        }
+        else if (!customers.Any())
+        {
+            <p><em>هیچ مشتری ثبت نشده است</em></p>
         }
         else
         {
             <div class="row body @body1CSSClass">
-                <div class="row body">
-                    <button type="button" @onclick="ConfirmSelectCustomers" value="ادامه" class="btn btn-primary">
+                <div class="row body" style="direction:ltr;">
+                    <button type="button" @onclick="ConfirmSelectCustomers" title="ادامه" class="btn btn-primary">
                         <i class="fas fa-angle-left"></i>
+                        ادامه
                     </button>
                 </div>
+                <div class="row body" style="min-height: 20px;"></div>
                 <div class="row body">
-                    <table class="table table-bordered table-responsive">
+                    <table class="table table-responsive">
                         <thead>
                             <tr>
                                 <th><strong>انتخاب</strong></th>
@@ -123,7 +137,9 @@
                             @foreach (var customerRecord in customers)
                             {
                                 <tr>
-                                    <td><input type="checkbox" @bind-value="customerRecord.IsSelected" @onclick="SelectCustomer" /></td>
+                                    @*@bind-value="customerRecord.IsSelected"*@
+                                    @*<td><input type="checkbox" class="form-check-input" @onchange="SelectCustomer(customerRecord.Id)" /></td>*@
+                                    <td><input type="checkbox" class="form-check-input" @onchange="(() => SelectCustomer(customerRecord.Id))" /></td>
                                     <td>@customerRecord.Id</td>
                                     <td>@customerRecord.FullName</td>
                                     <td>@customerRecord.CellPhone</td>
@@ -137,33 +153,57 @@
                     </table>
                 </div>
                 <div class="row body">
-                    <span class="align-items-end">تعداد گیرندگان انتخاب شده: @selectedCustomersCount</span>
+                    <p class="align-items-end">تعداد گیرندگان انتخاب شده: @selectedCustomersCount</p>
                 </div>
             </div>
 
             <div class="row body @body2CSSClass">
-                <div class="row body">
-                    <button type="button" @onclick="ConfirmCreateMessage" value="ادامه" class="btn btn-primary">
+                <div class="row body" style="direction:ltr;">
+                    <button type="button" @onclick="ConfirmCreateMessage" title="ادامه" class="btn btn-primary">
                         <i class="fas fa-angle-left"></i>
+                        ادامه
                     </button>
-                    <button type="button" @onclick="CancelCreateMessage" value="بازگشت" class="btn btn-warning">
+                    <button type="button" @onclick="CancelCreateMessage" title="بازگشت" class="btn btn-warning ml-2">
+                        بازگشت
                         <i class="fas fa-angle-right"></i>
                     </button>
                 </div>
+                <div class="row body" style="min-height: 20px;"></div>
                 <div class="row body">
+                    <textarea placeholder="متن پیام" class="form-control" style="min-height: 300px;" @bind="messageText" />
+                </div>
+                <div class="row body">
+                    <span>تعداد پیامک: @messageSMSCount</span>
                 </div>
             </div>
 
             <div class="row body @body3CSSClass">
-                <div class="row body">
-                    <button type="button" @onclick="ConfirmSendMessage" value="ارسال پیام" class="btn btn-success">
+                <div class="row body" style="direction:ltr;">
+                    <button type="button" @onclick="ConfirmSendMessage" title="ارسال پیام" class="btn btn-success">
                         <i class="fas fa-check"></i>
+                        ارسال 
                     </button>
-                    <button type="button" @onclick="CancelSendMessage" value="بازگشت" class="btn btn-warning">
+                    <button type="button" @onclick="CancelSendMessage" title="بازگشت" class="btn btn-warning ml-2">
+                        بازگشت
                         <i class="fas fa-angle-right"></i>
                     </button>
                 </div>
+                <div class="row body" style="min-height: 20px;"></div>
                 <div class="row body">
+                    <div class="row body" style="text-align: left;">
+                        <p>تعداد گیرندگان انتخاب شده: @selectedCustomersCount</p>
+                        <br/>
+                        <p>تعداد کل پیام‌ها: @messageTotalCount</p>
+                    </div>
+                    <div class="row body">
+                        <p>متن پیام: </p>
+                        <br />
+                        <p>@messageText</p>
+                    </div>
+                    <div class="row body" style="min-height: 20px;"></div>
+                    <div class="row body">
+                        <p>@smsResponse</p>
+                    </div>
                 </div>
             </div>
         }
@@ -171,8 +211,6 @@
 </div>
 
 @code {
-
-    //https://mdbootstrap.com/docs/jquery/components/stepper/
 
     #region Properties
 
@@ -183,15 +221,25 @@
     private string body2CSSClass;
     private string body3CSSClass;
 
+    private int rowIndex = 0;
+    private int totalRecords = 0;
+    private int totalPages = 0;
+    private int currentPage = 1;
+
     private int[] selectedCustomers;
     private int selectedCustomersCount;
+
+    private string messageText;
+    private int messageSMSCount;
+    private int messageTotalCount;
+    private string smsResponse;
 
     private List<CustomerViewModel> customers = new List<CustomerViewModel>();
     private CustomerViewModel customer = new CustomerViewModel();
 
     protected override async Task OnInitializedAsync()
     {
-        customers = await customerService.GetCustomersAsync(1, 10);
+        await GetAllTableRecords();
 
         step1CSSClass = "stepCircleCurrent";
         step2CSSClass = string.Empty;
@@ -200,14 +248,30 @@
         body1CSSClass = string.Empty;
         body2CSSClass = "bodyHide";
         body3CSSClass = "bodyHide";
+
+
     }
 
     #endregion
 
     #region Step 1 - Select Customers
 
-    private async Task SelectCustomer()
+    private async Task GetAllTableRecords()
     {
+        var customersList = await customerService.GetCustomersAsync(currentPage, 10);
+        customers = customersList.Customers;
+        totalRecords = customersList.TotlaCount;
+        rowIndex = 0;
+        totalPages = (totalRecords % 10) > 0
+            ? (totalRecords / 10) + 1
+            : totalRecords / 10;
+    }
+
+    private void SelectCustomer(int CustomerId)
+    {
+        var selectedCustomer = customers.FirstOrDefault(x => x.Id == CustomerId);
+        selectedCustomer.IsSelected = !selectedCustomer.IsSelected;
+
         selectedCustomers = customers.Where(x => x.IsSelected).Select(x => x.Id).ToArray();
         selectedCustomersCount = selectedCustomers.Count();
     }
@@ -246,6 +310,12 @@
         body2CSSClass = "bodyHide";
         body3CSSClass = string.Empty;
 
+        messageSMSCount = messageText.ToCharArray().Count() % 70 > 0
+                                ? (messageText.ToCharArray().Count() / 70) + 1
+                                : messageText.ToCharArray().Count() / 70;
+
+        messageTotalCount = messageSMSCount * selectedCustomersCount;
+
         #endregion
     }
 
@@ -271,8 +341,54 @@
     private async Task ConfirmSendMessage()
     {
         #region Confirm Send Message
-        
+
         //Send Message
+
+        smsResponse = string.Empty;
+
+        var recipients = string.Empty;
+
+        var selectedCustomers =
+                    customers
+                    .Where(x => x.IsSelected && !string.IsNullOrEmpty(x.CellPhone))
+                    .ToList();
+
+        foreach (var recipient in selectedCustomers)
+        {
+            recipients += "\"" + recipient.CellPhone.Trim() + "\"";
+
+            if (recipient.Id != selectedCustomers.Last().Id)
+            {
+                recipients += ", ";
+            }
+        }
+
+
+        var client = new RestClient("http://188.0.240.110/api/select");
+        var request = new RestRequest(Method.POST);
+        request.AddHeader("cache-control", "no-cache");
+        request.AddHeader("Content-Type", "application/json");
+        request.AddParameter("undefined", "{\"op\" : \"send\"" +
+                            ",\"uname\" : \"09122687870\"" +
+                            ",\"pass\":  \"@Namadin@1398\"" +
+                            ",\"message\" : \"" + messageText + "\"" +
+                            ",\"from\": \"5000125475\"" +
+                            ",\"to\" : [" + recipients + "]" +
+                            "}"
+                            , ParameterType.RequestBody);
+        IRestResponse response = client.Execute(request);
+
+        var responseCode = response.Content.Split(',')[0].Replace("[", "").Trim();
+        var responseMessage = response.Content.Split(',')[0].Replace("[", "").Trim();
+
+        if (responseCode == "0")
+        {
+            smsResponse = "پیام با موفقیت ارسال شد";
+        }
+        else
+        {
+            smsResponse = "پیام ارسال نشد، کد خطا: " + responseCode + " - شرح خطا: " + responseMessage;
+        }
 
         #endregion
     }

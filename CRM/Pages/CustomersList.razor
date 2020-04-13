@@ -20,31 +20,29 @@ else
             ایجاد مشتری جدید
         </a>
     </p>
-    <table class="table">
+    <table class="table table-responsive">
         <thead>
-            <tr>
-                @*<th>انتخاب</th>*@
-                <th>شناسه</th>
-                <th>نام و نام خانوادگی</th>
-                <th>تلفن همراه</th>
-                <th>پست الکترونیک</th>
-                <th>فعال</th>
-                <th>تاریخ ایجاد</th>
-                <th>عملیات</th>
+            <tr class="d-flex">
+                <th class="col-1">ردیف</th>
+                <th class="col-5">نام و نام خانوادگی</th>
+                <th class="col-2">تلفن همراه</th>
+                <th class="col-3">پست الکترونیک</th>
+                <th class="col-1">فعال</th>
+                <th class="col-2">تاریخ ایجاد</th>
+                <th class="col-2">عملیات</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var customerRecord in customers)
             {
-                <tr>
-                    @*<td><input type="checkbox" @bind-value="customerRecord.IsSelected" /></td>*@
-                    <td>@customerRecord.Id</td>
-                    <td>@customerRecord.FullName</td>
-                    <td>@customerRecord.CellPhone</td>
-                    <td>@customerRecord.Email</td>
-                    <td><input type="checkbox" disabled="disabled" @bind="customerRecord.IsEnable" /></td>
-                    <td>@customerRecord.CreatedTime.ToString("yyyy-MM-dd")</td>
-                    <td>
+                <tr class="d-flex">
+                    <td class="col-1">@(++rowIndex + (currentPage - 1) * 10)</td>
+                    <td class="col-5">@customerRecord.FullName</td>
+                    <td class="col-2">@customerRecord.CellPhone</td>
+                    <td class="col-3">@customerRecord.Email</td>
+                    <td class="col-1"><input type="checkbox" disabled="disabled" @bind="customerRecord.IsEnable" /></td>
+                    <td class="col-2">@customerRecord.CreatedTime.ToString("yyyy-MM-dd")</td>
+                    <td class="col-2">
                         <a class="btn btn-primary" @onclick="(() => EditCustomerModal(customerRecord))" title="ویرایش">
                             <i class="fas fa-user-edit"></i>
                         </a>
@@ -55,6 +53,27 @@ else
                 </tr>
             }
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6">
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        if (i != currentPage)
+                        {
+                            <a class="btn ml-2" @onclick="(() => TablePageChanged(i))" title="صفحه @i" >@i</a>
+                        }
+                        else
+                        {
+                            <span class="btn ml-2" style="text-decoration: underline; font-weight: bold;"
+                                  title="صفحه @i">@i</span>
+                            }
+                        }
+                </td>
+                <td>
+                    تعداد ردیف‌ها: @totalRecords
+                </td>
+            </tr>
+        </tfoot>
     </table>
     @*<br />
         <input type="submit" id="btnSend" class="btn btn-success" value="ارسال پیام" @onclick="SendMessage" />
@@ -102,17 +121,39 @@ else
     private int[] selectedCustomers;
     private int selectedCustomersCount;
 
+    private int rowIndex = 0;
+    private int totalRecords = 0;
+    private int totalPages = 0;
+    private int currentPage = 1;
+
     private List<CustomerViewModel> customers = new List<CustomerViewModel>();
     private CustomerViewModel customer = new CustomerViewModel();
 
     protected override async Task OnInitializedAsync()
     {
-        customers = await customerService.GetCustomersAsync(1, 10);
+        await GetAllTableRecords();
     }
 
     #endregion
 
     #region Actions
+
+    private async Task GetAllTableRecords()
+    {
+        var customersList = await customerService.GetCustomersAsync(currentPage, 10);
+        customers = customersList.Customers;
+        totalRecords = customersList.TotlaCount;
+        rowIndex = 0;
+        totalPages = (totalRecords % 10) > 0
+            ? (totalRecords / 10) + 1
+            : totalRecords / 10;
+    }
+
+    private async Task TablePageChanged(int SelectedPage)
+    {
+        currentPage = SelectedPage;
+        await GetAllTableRecords();
+    }
 
     private void CreateCustomerModal()
     {
@@ -148,7 +189,7 @@ else
             var result = customerService.UpdateCustomerAsync(customer);
         }
 
-        customers = await customerService.GetCustomersAsync(1, 10);
+        await GetAllTableRecords();
     }
 
     void EditCustomerModal(CustomerViewModel customerRecord)
@@ -158,7 +199,7 @@ else
         showCustomerPopup = true;
     }
 
-    protected async Task DeleteCustomer(CustomerViewModel customerRecord)
+    private async Task DeleteCustomer(CustomerViewModel customerRecord)
     {
         var messageString = $"آیا از حذف مشتری «{customerRecord.FullName}» مطمئن هستید؟";
         bool confirmed = await jsRuntime.InvokeAsync<bool>("confirm", messageString);
@@ -166,15 +207,9 @@ else
         if (confirmed)
         {
             await customerService.DeleteCustomerAsync(customerRecord.Id);
-            customers = await customerService.GetCustomersAsync(1, 10);
+            await GetAllTableRecords();
         }
     }
-
-    //private void SendMessage()
-    //{
-    //    selectedCustomers = customers.Where(x => x.IsSelected).Select(x => x.Id).ToArray();
-    //    selectedCustomersCount = selectedCustomers.Count();
-    //}
 
     #endregion
 

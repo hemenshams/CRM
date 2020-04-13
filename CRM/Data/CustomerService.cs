@@ -16,7 +16,7 @@ namespace CRM.Data
             _context = context;
         }
 
-        public async Task<List<CustomerViewModel>> GetCustomersAsync(int PageIndex, int PageSize)
+        public async Task<CustomerListViewModel> GetCustomersAsync(int PageIndex, int PageSize)
         {
             #region Get All Customers
 
@@ -42,7 +42,18 @@ namespace CRM.Data
                     IsSelected = false
                 });
 
-            return await customers.ToListAsync();
+            var totalCustomers = await _context.Customers
+                                        .AsQueryable()
+                                        .Where(x => x.IsEnable == true)
+                                        .CountAsync();
+
+            var customersList = new CustomerListViewModel()
+            {
+                Customers = await customers.ToListAsync(),
+                TotlaCount = totalCustomers
+            };
+
+            return customersList;
 
             #endregion
         }
